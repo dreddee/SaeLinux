@@ -11,7 +11,7 @@ import time
 import uuid
 
 BASE_IMAGE_PATH = "images"  # Répertoire où les images sont stockées dans le projet
-g_Connection = getConnection(port="3306")
+g_Connection = getConnection(port="3308")
 g_SearchVector, g_NameMap = CreateVectoriserModel(g_Connection)
 
 
