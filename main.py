@@ -9,9 +9,11 @@ import os
 import pandas as pd
 import time
 import uuid
+import os
 
-BASE_IMAGE_PATH = "images"  # Répertoire où les images sont stockées dans le projet
-g_Connection = getConnection(port="3308")
+basepath = os.path.dirname(os.path.abspath(__file__))
+BASE_IMAGE_PATH = os.path.join(basepath,"images")  # Répertoire où les images sont stockées dans le projet
+g_Connection = getConnection(port="3306")
 g_SearchVector, g_NameMap = CreateVectoriserModel(g_Connection)
 
 
@@ -27,7 +29,7 @@ def get_image_path(id_serie):
     if os.path.exists(image_path):
         return image_path # Retourne le chemin sous forme d'URL relative
     else:
-        return f"./{BASE_IMAGE_PATH}/default.jpg"  # Image par défaut si l'image spécifique n'existe pas
+        return f"{BASE_IMAGE_PATH}/default.jpg"  # Image par défaut si l'image spécifique n'existe pas
 
 def rechercher_series(termes):
     resultats = FullSearch(g_SearchVector, g_NameMap, termes.lower().split(' '), 12)
