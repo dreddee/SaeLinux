@@ -15,7 +15,7 @@ basepath = os.path.dirname(os.path.abspath(__file__))
 BASE_IMAGE_PATH = os.path.join(basepath,"images")  # Répertoire où les images sont stockées dans le projet
 g_Connection = getConnection(port="3306")
 g_SearchVector, g_NameMap = CreateVectoriserModel(g_Connection)
-
+connected = False
 
 COLUMNS_NUMBER = 4
 
@@ -336,10 +336,11 @@ with gr.Blocks(css=css) as app:
                 gr.Markdown("## Aucune série recommandée")
     @gr.render(inputs=[userIDState])
     def render_tabs(UserID):
-        if UserID != None:
+        if UserID != None and not connected:
             RechercheTab.render()
             EvaluateTab.render()  # Dynamically render the tab
             RecommendationTab.render()
+            connected = True 
     with ConnexionTab:
         bouton_connexion.click(fn=connexion_utilisateur, inputs=[user_id_connexion], outputs=[userIDState,userFullname,message_connexion]).then(fn=obtenir_recommandations, inputs=[userIDState], outputs=[recommended])#.then(None, None, None, js="() => document.getElementById('RechercheTab-button').click()")
 # Lancer l'application
