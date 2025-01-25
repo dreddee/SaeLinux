@@ -15,7 +15,6 @@ basepath = os.path.dirname(os.path.abspath(__file__))
 BASE_IMAGE_PATH = os.path.join(basepath,"images")  # Répertoire où les images sont stockées dans le projet
 g_Connection = getConnection(port="3306")
 g_SearchVector, g_NameMap = CreateVectoriserModel(g_Connection)
-connected = False
 
 COLUMNS_NUMBER = 4
 
@@ -85,7 +84,7 @@ def creer_utilisateur(user_name,fullname):
         conn.rollback()
         return False, f"Erreur lors de la création de l'utilisateur : {e}"
 
-def connexion_utilisateur(user_name):
+def connexion_utilisateur(user_name, connectionState):
     user_name = user_name.lower()
     print(user_name)
     conn = g_Connection
@@ -95,10 +94,10 @@ def connexion_utilisateur(user_name):
             result = cursor.fetchone()
             if result:
                 print("success")
-                return result[0], result[1], None
+                return result[0], result[1], None, True
             else:
                 print("failure")
-                return None, None, f"Utilisateur '{user_name}' non trouvé. Veuillez créer un compte d'abord."
+                return None, None, f"Utilisateur '{user_name}' non trouvé. Veuillez créer un compte d'abord.", connectionState
     except Exception as e:
         print(f"failure : {e}")
         return None, None, f"Erreur lors de la connexion : {e}"
@@ -152,6 +151,7 @@ with gr.Blocks(css=css) as app:
     derniere_recherche_series = gr.State("")
 
     userIDState = gr.State(None)
+    connectedState = gr.State(False)
     userFullname = gr.State(None)
     message_connexion =  gr.State(None)
 
@@ -334,14 +334,15 @@ with gr.Blocks(css=css) as app:
             else:
                 # Display message if input is not a DataFrame
                 gr.Markdown("## Aucune série recommandée")
-    @gr.render(inputs=[userIDState])
+    
+
+    @gr.render(inputs=[userIDState],triggers=[connectedState.change])
     def render_tabs(UserID):
-        if UserID != None and not connected:
+        if UserID != None:
             RechercheTab.render()
             EvaluateTab.render()  # Dynamically render the tab
             RecommendationTab.render()
-            connected = True 
     with ConnexionTab:
-        bouton_connexion.click(fn=connexion_utilisateur, inputs=[user_id_connexion], outputs=[userIDState,userFullname,message_connexion]).then(fn=obtenir_recommandations, inputs=[userIDState], outputs=[recommended])#.then(None, None, None, js="() => document.getElementById('RechercheTab-button').click()")
+        bouton_connexion.click(fn=connexion_utilisateur, inputs=[user_id_connexion,connectedState], outputs=[userIDState,userFullname,message_connexion,connectedState]).then(fn=obtenir_recommandations, inputs=[userIDState], outputs=[recommended])#.then(None, None, None, js="() => document.getElementById('RechercheTab-button').click()")
 # Lancer l'application
 app.launch()
